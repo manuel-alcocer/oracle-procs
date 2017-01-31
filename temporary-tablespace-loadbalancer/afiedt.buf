@@ -1,0 +1,6 @@
+select u.username, u.temporary_tablespace, t.blocks_free
+from dba_users u, v$TEMP_SPACE_HEADER t
+where u.account_status = 'OPEN'
+and u.temporary_tablespace = t.tablespace_name
+order by t.blocks_free desc, u.temporary_tablespace desc
+/
