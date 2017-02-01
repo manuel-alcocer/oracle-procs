@@ -43,6 +43,9 @@ as
             TablaTS(v_indice).bloquesLibres := v_tsbloque.blocks_free;
             v_indice := v_indice + 1;
         end loop;
+        if TablaTS.count < 1 then
+            raise_application_error(-20001, 'No se puede balancear sin TS Temporales con espacio libre');
+        end if;
     end RellenarBloques;
 
     procedure CalcularUsuariosporTS
@@ -121,4 +124,3 @@ from dba_users u, v$TEMP_SPACE_HEADER t
 where u.account_status = 'OPEN'
 and u.temporary_tablespace = t.tablespace_name
 order by t.blocks_free desc, u.temporary_tablespace desc;
-*/
