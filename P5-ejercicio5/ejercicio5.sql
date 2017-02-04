@@ -23,10 +23,10 @@ as
     procedure rellenarTRestrict (p_nombreTabla dba_tables.table_name%type)
     is
         cursor c_restrict is
-            select c.constraint_name, c.table_name, c.column_name, c.owner
+            select c.constraint_name, c.table_name, c.column_name, c.owner,
             r.constraint_type, r.search_condition
             from dba_cons_columns c, dba_constraints r
-            where lower(c.table_name) = lower(c.p_nombreTabla)
+            where lower(c.table_name) = lower(p_nombreTabla)
             and c.table_name = r.table_name
             and c.owner = r.owner;
     begin
