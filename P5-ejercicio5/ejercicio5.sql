@@ -107,13 +107,11 @@ as
     procedure rellenarTCols
     is
         v_prop      dba_constraints.owner%type := TablaCS.FIRST;
-        v_tabla     dba_constraints.table_name%type := TablaCS(v_prop).nombre_tabla.FIRST;
+        v_tabla     dba_constraints.table_name%type;
     begin
         while v_prop is not null loop
-            while v_tabla is not null loop
-                colquery(v_prop, v_tabla);
-                v_tabla := TablaCS(v_prop).nombre_tabla.next(v_tabla);
-            end loop;
+            v_tabla := TablaCS(v_prop).nombre_tabla.FIRST;
+            colquery(v_prop, v_tabla);
             v_prop := TablaCS.next(v_prop);
         end loop;
     end rellenarTCols;
@@ -129,28 +127,26 @@ as
         while v_owner is not null loop
             dbms_output.put_line(chr(10) || 'Esquema: ' || v_owner);
             v_table := TablaCS(v_owner).nombre_tabla.FIRST;
-            while v_table is not null loop
-                dbms_output.put_line('- Tabla: ' || v_table || chr(10) || '================');
-                v_const := TablaCS(v_owner).nombre_tabla(v_table).restricciones.FIRST;
-                while v_const is not null loop
-                    dbms_output.put_line('- Restriccion: ' || v_const || chr(10));
-                    if lower(TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).tipo_r) = 'c' then
-                       dbms_output.put_line( chr(9) || '- Condicion de busqueda: ' || chr(10) ||
-                                        TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).cond_busc);
-                    end if;
-                    v_col := TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).columnas.FIRST;
-                    dbms_output.put_line( chr(9) || '- Descripcion: ' || 
-                                        TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).descripcion);
-                    dbms_output.put_line(chr(9) || '- Columnas: ');
-                    while v_col is not null loop
-                        dbms_output.put_line(chr(9) || chr(9) || '* ' || v_col);
-                        v_col := TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).columnas.next(v_col);
-                    end loop;
-                    v_const := TablaCS(v_owner).nombre_tabla(v_table).restricciones.next(v_const);
-                    dbms_output.put_line(chr(10));
+            dbms_output.put_line('Tabla: ' || v_table || chr(10) || '================');
+            v_const := TablaCS(v_owner).nombre_tabla(v_table).restricciones.FIRST;
+            while v_const is not null loop
+                dbms_output.put_line('- Restriccion: ' || v_const || chr(10));
+                if lower(TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).tipo_r) = 'c' then
+                   dbms_output.put_line( chr(9) || '- Condicion de busqueda: ' || chr(10) ||
+                                    TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).cond_busc);
+                end if;
+                v_col := TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).columnas.FIRST;
+                dbms_output.put_line( chr(9) || '- Descripcion: ' || 
+                                    TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).descripcion);
+                dbms_output.put_line(chr(9) || '- Columnas: ');
+                while v_col is not null loop
+                    dbms_output.put_line(chr(9) || chr(9) || '* ' || v_col);
+                    v_col := TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).columnas.next(v_col);
                 end loop;
-                v_table := TablaCS(v_owner).nombre_tabla.next(v_table);
+                v_const := TablaCS(v_owner).nombre_tabla(v_table).restricciones.next(v_const);
+                dbms_output.put_line(chr(10));
             end loop;
+            v_table := TablaCS(v_owner).nombre_tabla.next(v_table);
             v_owner := TablaCS.next(v_owner);
         end loop;
     end mostrarRestrict;
