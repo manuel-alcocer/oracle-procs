@@ -103,35 +103,48 @@ create or replace package body P6 as
         end loop;
     end RellenarDispositivos;
 
-    procedure MostrarDispositivos
+    procedure mostrarObjetos (p_dev varchar2,
+                                p_file dba_data_files.file_name%type)
     is
-        v_dev   varchar2(100);
-        v_file  dba_data_files.file_name%type;
         v_obj   dba_segments.segment_name%type;
         v_indice number := 1;
+    begin
+        v_obj := TablaDev(p_dev).ficheros(p_file).objetos.FIRST;
+        while v_obj is not null loop
+            dbms_output.put_line(chr(9) || chr(9) || v_indice || '. Objeto: ' ||
+                TablaDev(p_dev).ficheros(p_file).objetos(v_obj).objeto);
+            dbms_output.put_line(chr(9) || chr(9) || chr(9) || 'Tamanyo: ' ||
+                TablaDev(p_dev).ficheros(p_file).objetos(v_obj).tamanyo || ' KB');
+            v_obj := TablaDev(p_dev).ficheros(p_file).objetos.next(v_obj);
+            v_indice := v_indice + 1;
+        end loop;
+    end mostrarObjetos;
+
+    procedure mostrarFicheros (p_dev varchar2)
+    is
+        v_file  dba_data_files.file_name%type;
+    begin
+        v_file := TablaDev(p_dev).ficheros.FIRST;
+        while v_file is not null loop
+            dbms_output.put_line(chr(9) || 'fichero: ' || v_file || ' -->> ' ||
+                TablaDev(p_dev).ficheros(v_file).tamanyo || ' KB');
+            mostrarObjetos(p_dev, v_file);
+            v_file := TablaDev(p_dev).ficheros.next(v_file);
+        end loop;
+    end mostrarFicheros;
+
+    procedure MostrarTDispositivos
+    is
+        v_dev   varchar2(100);
     begin
         v_dev := TablaDev.FIRST;
         while v_dev is not null loop
             dbms_output.put_line('Dispositivo: ' || v_dev || ' -->> ' ||
                 TablaDev(v_dev).tamanyo || ' KB');
-            v_file := TablaDev(v_dev).ficheros.FIRST;
-            while v_file is not null loop
-                dbms_output.put_line(chr(9) || 'fichero: ' || v_file || ' -->> ' ||
-                    TablaDev(v_dev).ficheros(v_file).tamanyo || ' KB');
-                v_obj := TablaDev(v_dev).ficheros(v_file).objetos.FIRST;
-                while v_obj is not null loop
-                    dbms_output.put_line(chr(9) || chr(9) || v_indice || '. Objeto: ' || 
-                        TablaDev(v_dev).ficheros(v_file).objetos(v_obj).objeto);
-                    dbms_output.put_line(chr(9) || chr(9) || chr(9) || 'Tamanyo: ' ||
-                        TablaDev(v_dev).ficheros(v_file).objetos(v_obj).tamanyo || ' KB');
-                    v_obj := TablaDev(v_dev).ficheros(v_file).objetos.next(v_obj);
-                    v_indice := v_indice + 1;
-                end loop;
-                v_file := TablaDev(v_dev).ficheros.next(v_file);
-            end loop;
+            mostrarFicheros(v_dev);
             v_dev := TablaDev.next(v_dev);
         end loop;
-    end MostrarDispositivos;
+    end MostrarTDispositivos;
 
     procedure MostrarAlmacenamientoUsuario (p_usuario dba_users.username%type)
     is
@@ -139,7 +152,7 @@ create or replace package body P6 as
         borrarTrabajo;
         crearTrabajo;
         RellenarDispositivos (p_usuario);
-        MostrarDispositivos;
+        MostrarTDispositivos;
         borrarTrabajo;
     end MostrarAlmacenamientoUsuario;
 end P6;
