@@ -1,0 +1,3 @@
+select file_id, file_name from dba_data_files
+where tablespace_name in (select tablespace_name from dba_segments where lower(owner) = 'scott')
+/
