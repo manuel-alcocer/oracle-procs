@@ -27,7 +27,8 @@ create or replace package P6 as
         index by varchar2(100);
 
     TablaDev TipoTablaDispositivo;
-
+    
+    v_indice_g number := 1;
     procedure MostrarAlmacenamientoUsuario (p_usuario dba_users.username%type);
 end P6;
 /
@@ -107,16 +108,15 @@ create or replace package body P6 as
                                 p_file dba_data_files.file_name%type)
     is
         v_obj   dba_segments.segment_name%type;
-        v_indice number := 1;
     begin
         v_obj := TablaDev(p_dev).ficheros(p_file).objetos.FIRST;
         while v_obj is not null loop
-            dbms_output.put_line(chr(9) || chr(9) || v_indice || '. Objeto: ' ||
+            dbms_output.put_line(chr(9) || chr(9) || v_indice_g || '. Objeto: ' ||
                 TablaDev(p_dev).ficheros(p_file).objetos(v_obj).objeto);
             dbms_output.put_line(chr(9) || chr(9) || chr(9) || 'Tamanyo: ' ||
                 TablaDev(p_dev).ficheros(p_file).objetos(v_obj).tamanyo || ' KB');
             v_obj := TablaDev(p_dev).ficheros(p_file).objetos.next(v_obj);
-            v_indice := v_indice + 1;
+            v_indice_g := v_indice_g + 1;
         end loop;
     end mostrarObjetos;
 

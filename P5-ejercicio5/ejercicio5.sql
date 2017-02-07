@@ -71,6 +71,16 @@ as
         end case;
         return v_tipo;
     end tipoRestric;
+    
+    function sustituirRetorno (p_cadena long)
+    return varchar2
+    is
+        cadena varchar2(500);
+    begin
+        cadena := substr(p_cadena,1,499);
+        cadena := replace(cadena, chr(10), ' ');
+        return cadena;
+    end sustituirRetorno;
 
     procedure rellenarTRestrict (p_nombreTabla dba_tables.table_name%type)
     is
@@ -78,14 +88,14 @@ as
             select owner, table_name, constraint_name,
             constraint_type, search_condition
             from dba_constraints
-            where lower(table_name) = lower('dept')
+            where lower(table_name) = lower(p_nombreTabla)
             order by owner, table_name;
     begin
         for v_r in c_restrict loop
             TablaCS(v_r.owner).nombre_tabla(v_r.table_name).restricciones(v_r.constraint_name).tipo_r
                     := v_r.constraint_type;
             TablaCS(v_r.owner).nombre_tabla(v_r.table_name).restricciones(v_r.constraint_name).cond_busc
-                    := v_r.search_condition;
+                    := sustituirRetorno(v_r.search_condition);
             TablaCS(v_r.owner).nombre_tabla(v_r.table_name).restricciones(v_r.constraint_name).descripcion
                     := tipoRestric(v_r.constraint_type);
         end loop;
@@ -137,27 +147,26 @@ as
     begin
         v_const := TablaCS(p_owner).nombre_tabla(p_table).restricciones.FIRST;
         while v_const is not null loop
-            dbms_output.put_line('- Restriccion: ' || v_const || chr(10));
+            dbms_output.put_line(chr(10) || '- Restriccion: ' || v_const || ':');
             dbms_output.put_line( chr(9) || '- Descripcion: ' || 
                                 TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).descripcion);
             if lower(TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).tipo_r) = 'c' then
-               dbms_output.put_line( chr(9) || '- Condicion de busqueda: ' || chr(10) ||
-                                TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).cond_busc);
+               dbms_output.put_line( chr(9) || '- Condicion de busqueda: ' );
+               dbms_output.put_line( chr(9) || chr(9) || '* ' ||
+                TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).cond_busc);
             end if;
             dbms_output.put_line(chr(9) || '- Columnas: ');
             v_col := TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).columnas.FIRST;
             mostrarCols(p_owner, p_table, v_const);
             v_const := TablaCS(p_owner).nombre_tabla(p_table).restricciones.next(v_const);
-            dbms_output.put_line(chr(10));
         end loop;
+        dbms_output.put_line(chr(10));
     end mostrarRestric;
 
     procedure mostrarTRestrict
     is
         v_owner     dba_constraints.owner%TYPE;
         v_table     dba_constraints.table_name%TYPE;
-        v_const     dba_constraints.constraint_name%TYPE;
-        v_col       dba_cons_columns.column_name%TYPE;
     begin
         v_owner := TablaCS.FIRST;
         while v_owner is not null loop

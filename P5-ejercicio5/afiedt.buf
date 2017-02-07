@@ -1,3 +1,9 @@
-select file_id, file_name from dba_data_files
-where tablespace_name in (select tablespace_name from dba_segments where lower(owner) = 'scott')
+declare
+  l_long long;
+  l_vc2 varchar2(32767);
+begin
+select search_condition into l_long from dba_constraints where lower(table_name) = lower('dept');
+  l_vc2 := substr(l_long, 1, 32767);
+  dbms_output.put_line(l_vc2);
+end;
 /
