@@ -140,6 +140,7 @@ create or replace package body P6 as
         crearTrabajo;
         RellenarDispositivos (p_usuario);
         MostrarDispositivos;
+        borrarTrabajo;
     end MostrarAlmacenamientoUsuario;
 end P6;
 /
