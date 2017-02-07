@@ -116,7 +116,43 @@ as
         end loop;
     end rellenarTCols;
 
-    procedure mostrarRestrict
+    procedure mostrarCols (p_owner dba_constraints.owner%type,
+                            p_table dba_constraints.table_name%type,
+                            p_const dba_constraints.constraint_name%type)
+    is
+        v_col       dba_cons_columns.column_name%TYPE;
+    begin
+        v_col := TablaCS(p_owner).nombre_tabla(p_table).restricciones(p_const).columnas.FIRST;
+        while v_col is not null loop
+            dbms_output.put_line(chr(9) || chr(9) || '* ' || v_col);
+            v_col := TablaCS(p_owner).nombre_tabla(p_table).restricciones(p_const).columnas.next(v_col);
+        end loop;
+    end mostrarCols;
+
+    procedure mostrarRestric (p_owner   dba_constraints.owner%type,
+                              p_table   dba_constraints.table_name%type)
+    is
+        v_col       dba_cons_columns.column_name%TYPE;
+        v_const     dba_constraints.constraint_name%TYPE;
+    begin
+        v_const := TablaCS(p_owner).nombre_tabla(p_table).restricciones.FIRST;
+        while v_const is not null loop
+            dbms_output.put_line('- Restriccion: ' || v_const || chr(10));
+            dbms_output.put_line( chr(9) || '- Descripcion: ' || 
+                                TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).descripcion);
+            if lower(TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).tipo_r) = 'c' then
+               dbms_output.put_line( chr(9) || '- Condicion de busqueda: ' || chr(10) ||
+                                TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).cond_busc);
+            end if;
+            dbms_output.put_line(chr(9) || '- Columnas: ');
+            v_col := TablaCS(p_owner).nombre_tabla(p_table).restricciones(v_const).columnas.FIRST;
+            mostrarCols(p_owner, p_table, v_const);
+            v_const := TablaCS(p_owner).nombre_tabla(p_table).restricciones.next(v_const);
+            dbms_output.put_line(chr(10));
+        end loop;
+    end mostrarRestric;
+
+    procedure mostrarTRestrict
     is
         v_owner     dba_constraints.owner%TYPE;
         v_table     dba_constraints.table_name%TYPE;
@@ -128,28 +164,11 @@ as
             dbms_output.put_line(chr(10) || 'Esquema: ' || v_owner);
             v_table := TablaCS(v_owner).nombre_tabla.FIRST;
             dbms_output.put_line('Tabla: ' || v_table || chr(10) || '================');
-            v_const := TablaCS(v_owner).nombre_tabla(v_table).restricciones.FIRST;
-            while v_const is not null loop
-                dbms_output.put_line('- Restriccion: ' || v_const || chr(10));
-                if lower(TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).tipo_r) = 'c' then
-                   dbms_output.put_line( chr(9) || '- Condicion de busqueda: ' || chr(10) ||
-                                    TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).cond_busc);
-                end if;
-                v_col := TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).columnas.FIRST;
-                dbms_output.put_line( chr(9) || '- Descripcion: ' || 
-                                    TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).descripcion);
-                dbms_output.put_line(chr(9) || '- Columnas: ');
-                while v_col is not null loop
-                    dbms_output.put_line(chr(9) || chr(9) || '* ' || v_col);
-                    v_col := TablaCS(v_owner).nombre_tabla(v_table).restricciones(v_const).columnas.next(v_col);
-                end loop;
-                v_const := TablaCS(v_owner).nombre_tabla(v_table).restricciones.next(v_const);
-                dbms_output.put_line(chr(10));
-            end loop;
+            mostrarRestric(v_owner, v_table);
             v_table := TablaCS(v_owner).nombre_tabla.next(v_table);
             v_owner := TablaCS.next(v_owner);
         end loop;
-    end mostrarRestrict;
+    end mostrarTRestrict;
 
     procedure restricciones (p_nombreTabla dba_tables.table_name%type)
     is
@@ -157,7 +176,7 @@ as
         if existeTabla(p_nombreTabla) then
             rellenarTRestrict(p_nombreTabla);
             rellenarTCols;
-            mostrarRestrict;
+            mostrarTRestrict;
         end if;
     end restricciones;
 end P5;
